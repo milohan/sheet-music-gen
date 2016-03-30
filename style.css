@@ -1,0 +1,7 @@
+textarea#input {
+	float: left;
+	width: 300px;
+	height: 200px;
+	font-size: 12px;
+	padding: 10px;
+}
