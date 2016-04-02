@@ -19,25 +19,46 @@
 
 	var timeNumerator = 4;
 	var timeDenominator = 4;
-	var numMeasures = 0;
-	var lineLength = 25;
+	var minMeasures = 0;
+	var maxMeasures = 0;
+    var lineLength = 25;
 	var startKey = 'C';
-	var noteValues = ['q'];
+	var noteLengths = ['q'];
 	var noteLetters = ['C,', 'D,', 'E,', 'F,', 'G,', 'A,', 'B,', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c', 'd', 'e', 'f', 'g', 'a', 'b'];
+    //var keys = ['A','B','C','D','E','F','G'];
 
 
 	function randInt(bound) {
 		return Math.floor(Math.random() * (bound));
 	}
 
+    function test(){
+
+        var params = [{ foo: true }, { bar: false }];
+        var paramList = {};
+        
+        for (var i = 0; i < params.length; i++) {
+            console.log(params[i]);
+            for (var key in params[i]) {
+                console.log(key);
+                console.log(params[i][key]);
+                paramList[key] = params[i][key];
+                
+             }
+        }
+        paramList["hlasd"] = "hi";
+        console.log(paramList);
+    }
+
     //generates and renders piece based on current parameters
     function generate(){
+        test();
     	parse();
     	var genString ="M: " + timeNumerator + "/" + timeDenominator + "\n";
     	genString = genString + "L: 1/4 \n"
     	genString = genString + "K: " + startKey + "\n"
 
-    	var m = numMeasures;
+    	var m = randInt(maxMeasures - minMeasures + 1) + minMeasures;
     	var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
     	while (m > 0){
     		var measure = genMeasure();
@@ -52,7 +73,7 @@
     		}
     	}
 
-    	//alert(genString);
+        //alert(genString);
     	ABCJS.renderAbc('notation', genString);
     }
 
@@ -60,8 +81,20 @@
     function parse(){
     	var data = parser.parse($('textarea#input').val());
     	
-    	//number of measures
-    	numMeasures = data.numMeasures;
+    	//number of measures.  either array (when user enters a min/max range) or an int.
+        if (data.numMeasures != null){
+            if (data.numMeasures.constructor === Array){
+    	      minMeasures = data.numMeasures[0];
+               maxMeasures = data.numMeasures[1];
+            }
+            else {
+                minMeasures = data.numMeasures;
+                maxMeasures = data.numMeasures;
+            }
+        }
+
+        //starting key
+        startKey = data.key;
     }
 
     //returns an object that wraps two elements: measureString, numNotes
