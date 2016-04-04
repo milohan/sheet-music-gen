@@ -7,8 +7,8 @@
 	<script src="abcjs_basic_2.3-min.js" type="text/javascript"></script>
 	<script src="parser.js" type="text/javascript"></script>
 	<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="style.css">
-	
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 
@@ -16,65 +16,56 @@
 	<script type="text/javascript">
 
 	var MEASURE_LENGTH_PADDING = 2;
-
-	var timeNumerator = 4;
-	var timeDenominator = 4;
-	var minMeasures = 0;
-	var maxMeasures = 0;
+    var seed;
+    var timeNumerator = 4;
+    var timeDenominator = 4;
+    var minMeasures = 0;
+    var maxMeasures = 0;
     var lineLength = 25;
-	var startKey = 'C';
-	var noteLengths = ['q'];
-	var noteLetters = ['C,', 'D,', 'E,', 'F,', 'G,', 'A,', 'B,', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c', 'd', 'e', 'f', 'g', 'a', 'b'];
+    var startKey = 'C';
+    var noteLengths = ['q'];
+    var noteLetters = ['C,', 'D,', 'E,', 'F,', 'G,', 'A,', 'B,', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c', 'd', 'e', 'f', 'g', 'a', 'b'];
     //var keys = ['A','B','C','D','E','F','G'];
 
-
-	function randInt(bound) {
-		return Math.floor(Math.random() * (bound));
-	}
-
-    function test(){
-
-        var params = [{ foo: true }, { bar: false }];
-        var paramList = {};
-        
-        for (var i = 0; i < params.length; i++) {
-            console.log(params[i]);
-            for (var key in params[i]) {
-                console.log(key);
-                console.log(params[i][key]);
-                paramList[key] = params[i][key];
-                
-             }
-        }
-        paramList["hlasd"] = "hi";
-        console.log(paramList);
+    function random() {
+        var x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
     }
+
+    //returns a random number between 0 and bound.
+    function randInt(bound) {
+      return Math.floor(Math.random() * (bound));
+  }
 
     //generates and renders piece based on current parameters
     function generate(){
-        test();
-    	parse();
-    	var genString ="M: " + timeNumerator + "/" + timeDenominator + "\n";
-    	genString = genString + "L: 1/4 \n"
-    	genString = genString + "K: " + startKey + "\n"
 
-    	var m = randInt(maxMeasures - minMeasures + 1) + minMeasures;
-    	var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
-    	while (m > 0){
-    		var measure = genMeasure();
-    		m--;
-    		genString = genString + measure.measureString;
-    		curLineLength += measure.numNotes;
+        setup();
 
-    		//start new line if we're past lineLength
-    		if (curLineLength >= lineLength){
-    			curLineLength = 0;
-    			genString = genString + "\n";
-    		}
-    	}
+        //parse
+        var parseSuccess = true;
+        try {
+            parse();
+        }
+        catch(err) {
+            $("#error").html(err.name + ": " + err.message);
+            parseSuccess = false;
+        }
 
-        //alert(genString);
-    	ABCJS.renderAbc('notation', genString);
+        //generate ABC string and render it
+        if (parseSuccess){
+            ABCJS.renderAbc('notation', genABC());
+        }
+    }
+
+    function setup(){
+
+        //clear out prev sheet music
+        $("#notation").html("");
+
+        //clear out any error messages
+        $("#error").html("");
+
     }
 
     //parses whatever's in the #input text area with parser.parse().  sets appropriate parameters based on data received from parsing.
@@ -84,7 +75,7 @@
     	//number of measures.  either array (when user enters a min/max range) or an int.
         if (data.numMeasures != null){
             if (data.numMeasures.constructor === Array){
-    	      minMeasures = data.numMeasures[0];
+               minMeasures = data.numMeasures[0];
                maxMeasures = data.numMeasures[1];
             }
             else {
@@ -95,6 +86,35 @@
 
         //starting key
         startKey = data.key;
+
+        //seed
+        var randSeed = Math.random().toString(36).substr(2, 5);
+        seed = randSeed;
+        console.log("seed: " + seed);
+        Math.seedrandom(seed);
+        $("#seed").html(seed);
+    }
+
+    function genABC(){
+        var genString ="M: " + timeNumerator + "/" + timeDenominator + "\n";
+        genString = genString + "L: 1/4 \n"
+        genString = genString + "K: " + startKey + "\n"
+
+        var m = randInt(maxMeasures - minMeasures + 1) + minMeasures;
+        var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
+        while (m > 0){
+            var measure = genMeasure();
+            m--;
+            genString = genString + measure.measureString;
+            curLineLength += measure.numNotes;
+
+            //start new line if we're past lineLength
+            if (curLineLength >= lineLength){
+                curLineLength = 0;
+                genString = genString + "\n";
+            }
+        }
+        return genString;
     }
 
     //returns an object that wraps two elements: measureString, numNotes
@@ -117,9 +137,10 @@
     }
     </script>
 
-    <p>
-    	<a href="#" onclick="generate()" >GENERATE</a>
-    </p>
+    
+    <a href="#" onclick="generate()" >GENERATE  </a>
+    <p>Seed: <span id ="seed"></span> <br> <span id = "error"></span></p>
+
 
     <textarea id="input">measures: 10</textarea>
 
