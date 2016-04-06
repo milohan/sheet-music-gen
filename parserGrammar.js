@@ -12,7 +12,7 @@ ParameterList =
     }
 
 Parameter = 
-  	w param:(PIntRangeOrInt/PKeySignature) w{
+  	w param:(PIntRangeOrInt/PKeySignature/PSeed) w{
  		return param;
   	}
 
@@ -31,6 +31,17 @@ PKeySignature =
     	if (param == "key"){
         	return {key: value+suffix};
         }
+    }
+    
+//seed
+PSeed = 
+	"seed" _ ":" _ value:Alphanumeric {
+    	return {seed: value};
+    }
+
+Alphanumeric = 
+	chars: [a-z0-9]+{
+    	return chars.join("");
     }
 
 Letter = 

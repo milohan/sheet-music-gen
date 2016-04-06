@@ -15,27 +15,60 @@
 
 	<script type="text/javascript">
 
+    var OCTAVE = 12;
 	var MEASURE_LENGTH_PADDING = 2;
     var seed;
     var timeNumerator = 4;
     var timeDenominator = 4;
+    var clef = "treble";
     var minMeasures = 0;
     var maxMeasures = 0;
     var lineLength = 25;
     var startKey = 'C';
     var noteLengths = ['q'];
-    var noteLetters = ['C,', 'D,', 'E,', 'F,', 'G,', 'A,', 'B,', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c', 'd', 'e', 'f', 'g', 'a', 'b'];
+    var noteLetters = ['A,,,,', 'B,,,,','C,,,', 'D,,,', 'E,,,', 'F,,,', 'G,,,', 'A,,,', 'B,,,','C,,', 'D,,', 'E,,', 'F,,', 'G,,', 'A,,', 'B,,','C,', 'D,', 'E,', 'F,', 'G,', 'A,', 'B,', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c', 'd', 'e', 'f', 'g', 'a', 'b', "c'", "d'", "e'", "f'", "g'", "a'", "b'", "c''", "d'", "e''", "f'", "g''", "a''", "b''", "c'''"];
+
+    var letterVals = {
+        "C": 0,
+        "D": 2,
+        "E": 4,
+        "F": 5,
+        "G": 7,
+        "A": 9,
+        "B": 11
+    }
+
     //var keys = ['A','B','C','D','E','F','G'];
 
-    function random() {
-        var x = Math.sin(seed++) * 10000;
-        return x - Math.floor(x);
+    //@pre: note is a string of the format "LETTER (A-G) + (#* OR b*) + NUMBER (0-8)," eg C#4 or D2.
+    function sciToMidi(note){
+        var letter = note.charAt(0).toUpperCase();
+        var octave = parseInt(note.charAt(note.length-1));
+        var symbols = note.substring(1, note.length-1);
+
+        var midi = 0;
+        midi = (octave + 1) * OCTAVE + letterVals[letter];
+
+        //assumes that we have only sharps OR only flats in 'symbols' (never both sharps and flats).
+        if (symbols.length > 0){
+
+            //add 1 for every sharp
+            if (symbols.charAt(0) == '#') {
+                midi = midi + symbols.length;
+            }
+
+            //subtract 1 for every flat
+            else if (symbols.charAt(0) == 'b'){
+                midi = midi - symbols.length;
+            }
+        }
+        return midi;
     }
 
     //returns a random number between 0 and bound.
     function randInt(bound) {
-      return Math.floor(Math.random() * (bound));
-  }
+        return Math.floor(Math.random() * (bound));
+    }
 
     //generates and renders piece based on current parameters
     function generate(){
@@ -49,6 +82,7 @@
         }
         catch(err) {
             $("#error").html(err.name + ": " + err.message);
+            console.log(err);
             parseSuccess = false;
         }
 
@@ -65,6 +99,8 @@
 
         //clear out any error messages
         $("#error").html("");
+
+        clef = "treble";
 
     }
 
@@ -85,20 +121,31 @@
         }
 
         //starting key
-        startKey = data.key;
+        if (data.key != null){
+            startKey = data.key;
+        }
 
         //seed
-        var randSeed = Math.random().toString(36).substr(2, 5);
-        seed = randSeed;
-        console.log("seed: " + seed);
+        if (data.seed != null){
+            seed = data.seed;
+        }
+        else {
+            var randSeed = Math.random().toString(36).substr(2, 5);
+            seed = randSeed;
+        }
         Math.seedrandom(seed);
         $("#seed").html(seed);
+
+        //clef
+        if (data.clef != null){
+            clef = data.clef;
+        }
     }
 
     function genABC(){
         var genString ="M: " + timeNumerator + "/" + timeDenominator + "\n";
         genString = genString + "L: 1/4 \n"
-        genString = genString + "K: " + startKey + "\n"
+        genString = genString + "K: " + startKey + " " + clef + "\n"
 
         var m = randInt(maxMeasures - minMeasures + 1) + minMeasures;
         var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
