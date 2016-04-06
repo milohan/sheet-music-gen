@@ -12,7 +12,7 @@ ParameterList =
     }
 
 Parameter = 
-  	w param:(PIntRangeOrInt/PKeySignature/PSeed) w{
+  	w param:(PIntRangeOrInt/PKeySignature/PSeed/PSciNoteRange) w{
  		return param;
   	}
 
@@ -39,6 +39,12 @@ PSeed =
     	return {seed: value};
     }
 
+//sci note
+PSciNoteRange = 
+	"absRange" _ ":" _ value:SciNoteRange {
+    	return {absRange: value};
+    }
+
 Alphanumeric = 
 	chars: [a-z0-9]+{
     	return chars.join("");
@@ -56,13 +62,71 @@ Integer =
 	}
 
 IntegerRange = 
-	first:Integer"-"second:Integer{ 
+	first:Integer _ "-" _ second:Integer{ 
     	if (first > second){
         	error("Min value must be greater than max value");
         }
 		return [first, second]; 
 	}
-   
+
+SciNoteRange = 
+	first:SciNote _ "-" _ second:SciNote{
+    	if (first > second){
+        	error("Min note must be lower than max note");
+        }
+        return [first, second];
+    }
+
+//a note with an octave -> MIDI #
+SciNote = 
+	letter:LetterToInt symbols:SharpsFlatsToInt octave:Octave {
+    	return (octave + 1)* 12 + letter + symbols;
+    }
+    
+//returns a positive or negative integer.  ## -> +2, bbb -> -3
+SharpsFlatsToInt = 
+	symbols: (FlatsAndSharps / Flats / Sharps / "") {
+    	if (symbols[0] == '#'){
+        	return symbols.length;
+        }
+        return -symbols.length;
+    }
+
+//one or more sharps
+Sharps = 
+	"#"+
+
+//one or more flats
+Flats = 
+	"b"+
+    
+//matches a string that has at least one sharp and one flat - currently used just for checking errors
+FlatsAndSharps = 
+    (("b" ("b")* "#" ("b"/"#")*) / ("#" ("#")* "b" ("b"/"#")*)) {
+    	error("Error: Found sharps and flats within the same note");
+    }
+    
+
+//converts note letter to int
+LetterToInt =
+	letter:Letter {
+    	if (letter == "C") return 0;
+        if (letter =="D") return 2;
+        if (letter =="E") return 4;
+        if (letter =="F") return 5;
+        if (letter == "G") return 7;
+        if (letter =="A") return 9;
+        if (letter =="B") return 11;
+    }
+
+//an int between 0 and 8
+Octave = 
+	octave: Integer {
+    	if (octave > 8 || octave < 0){
+        	error("octave must be an integer between 0 and 8");
+        }
+        return octave
+    }
 
 _ "whitespace"
 = [ \t\r]*

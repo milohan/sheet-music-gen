@@ -23,6 +23,8 @@
     var clef = "treble";
     var minMeasures = 0;
     var maxMeasures = 0;
+    var absMinPitch = 0;
+    var absMaxPitch = 127;
     var lineLength = 25;
     var startKey = 'C';
     var noteLengths = ['q'];
@@ -39,31 +41,6 @@
     }
 
     //var keys = ['A','B','C','D','E','F','G'];
-
-    //@pre: note is a string of the format "LETTER (A-G) + (#* OR b*) + NUMBER (0-8)," eg C#4 or D2.
-    function sciToMidi(note){
-        var letter = note.charAt(0).toUpperCase();
-        var octave = parseInt(note.charAt(note.length-1));
-        var symbols = note.substring(1, note.length-1);
-
-        var midi = 0;
-        midi = (octave + 1) * OCTAVE + letterVals[letter];
-
-        //assumes that we have only sharps OR only flats in 'symbols' (never both sharps and flats).
-        if (symbols.length > 0){
-
-            //add 1 for every sharp
-            if (symbols.charAt(0) == '#') {
-                midi = midi + symbols.length;
-            }
-
-            //subtract 1 for every flat
-            else if (symbols.charAt(0) == 'b'){
-                midi = midi - symbols.length;
-            }
-        }
-        return midi;
-    }
 
     //returns a random number between 0 and bound.
     function randInt(bound) {
@@ -139,6 +116,12 @@
         //clef
         if (data.clef != null){
             clef = data.clef;
+        }
+
+        //absolute min/max pitch
+        if (data.absRange != null){
+            absMinPitch = data.absRange[0];
+            absMaxPitch = data.absRange[1];
         }
     }
 
