@@ -10,4 +10,5 @@ Parameter Name | Example Values | Description
 measures | "10", "15-27"| # of measures of sheet music to generate  
 key | "A", "Fm", "BMajor" | starting key signature
 clef | "treble", "alto", "bass" | clef used for stave
+absRange|"C3-G#6"| range of allowable pitches
 seed | "h3042s", "grEenbn0na" | seed used for procedural generation of score
