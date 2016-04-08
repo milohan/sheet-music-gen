@@ -32,9 +32,9 @@ PClef =
 
 //all parameters that expect a time signature
 PKeySignature = 
-    param:("key") _ ":" _ value:Letter (" "/"") suffix:KeySuffix {
+    param:("key") _ ":" _ value:Letter (" "/"") symbol:("#"/"b"/"") (" "/"") suffix:KeySuffix {
         if (param == "key"){
-            return {key: value+suffix};
+            return {key: value+symbol+suffix};
         }
     }
     

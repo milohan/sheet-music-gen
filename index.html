@@ -38,7 +38,11 @@
         "G": 7,
         "A": 9,
         "B": 11
-    }
+    };
+
+    var notesSharps = ["C", "^C", 'D', '^D', 'E', "F", "^F", "G", "^G", "A", "^A", "B"];
+    var notesFlats = ["C", "_D", 'D', '_E', 'E', "F", "_G", "G", "_A", "A", "_B", "B"];
+
 
     //var keys = ['A','B','C','D','E','F','G'];
 
@@ -47,10 +51,63 @@
         return Math.floor(Math.random() * (bound));
     }
 
+    //@pre: note is a string of the format "LETTER (A-G) + (#* OR b*) + NUMBER (0-8)," eg C#4 or D2.
+    function sciToMidi(note){
+        var letter = note.charAt(0).toUpperCase();
+        var octave = parseInt(note.charAt(note.length-1));
+        var symbols = note.substring(1, note.length-1);
+
+        var midi = 0;
+        midi = (octave + 1) * OCTAVE + letterVals[letter];
+
+        //assumes that we have only sharps OR only flats in 'symbols' (never both sharps and flats).
+        if (symbols.length > 0){
+
+            //add 1 for every sharp
+            if (symbols.charAt(0) == '#') {
+                midi = midi + symbols.length;
+            }
+
+            //subtract 1 for every flat
+            else if (symbols.charAt(0) == 'b'){
+                midi = midi - symbols.length;
+            }
+        }
+        return midi;
+    }
+
+    function midiToAbc(midi){
+        var abcString;
+        if (randInt(2) == 0) {
+            abcString = notesSharps[midi % 12];
+        }
+        else {
+            abcString = notesFlats[midi%12];
+        }
+        var octave = Math.floor((midi-60)/12);
+
+        var symbol;
+        if (octave > 0){
+            symbol = "'"; //higher than middle C octave
+        }
+        else {
+            symbol = ","; //lower or equal to middle C octave
+        }
+        
+        octave = Math.abs(octave);
+        
+        while (octave > 0){
+            octave--;
+            abcString = abcString + symbol;
+        }
+
+        return abcString;
+    }
+
     //generates and renders piece based on current parameters
     function generate(){
 
-        setup();
+        presets();
 
         //parse
         var parseSuccess = true;
@@ -65,11 +122,16 @@
 
         //generate ABC string and render it
         if (parseSuccess){
+            setup();
             ABCJS.renderAbc('notation', genABC());
         }
     }
 
     function setup(){
+
+    }
+
+    function presets(){
 
         //clear out prev sheet music
         $("#notation").html("");
@@ -79,6 +141,8 @@
 
         clef = "treble";
 
+        absMinPitch = sciToMidi("G3");
+        absMaxPitch = sciToMidi("C6");
     }
 
     //parses whatever's in the #input text area with parser.parse().  sets appropriate parameters based on data received from parsing.
@@ -155,7 +219,7 @@
     	var numNotes = 0;
     	while (n > 0){
     		n--;
-    		measureString = measureString + " " + noteLetters[randInt(noteLetters.length)];
+    		measureString = measureString + " " + genRandomNote();
     		numNotes++;  //increment numNotes every time we add a note.
     	}
     	measureString = measureString + " |";
@@ -165,6 +229,42 @@
     		numNotes: numNotes
     	};
     }
+
+    //TODO: potential infinite loop if user enters SMALL abs pitch range and LARGE poly.
+    //generates random note (can be a chord as well) within abs pitch range.
+    function genRandomNote(){
+        var noteString = "[";
+
+        //num of notes in chord
+        var poly = getPoly();
+
+        //stores midi representation of notes
+        var notes = [];
+
+        //add notes 'poly' times
+        while (poly > 0){
+            poly--;
+            
+            //loop until we find a note that isn't in note array yet
+            var posNote = randInt(absMaxPitch - absMinPitch + 1) + absMinPitch;
+            while (notes.indexOf(posNote) > -1){
+                posNote = randInt(absMaxPitch - absMinPitch + 1) + absMinPitch;
+            }
+            notes[notes.length] = posNote;
+        }
+
+        //create string from midi notes in 'note' array
+        for (var i = 0; i < notes.length; i++){
+            noteString = noteString + midiToAbc(notes[i]);
+        }
+        noteString = noteString + "]";
+        return noteString;
+    }
+
+    function getPoly(){
+        return randInt(3) + 1;
+    }
+
     </script>
 
     
