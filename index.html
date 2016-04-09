@@ -25,6 +25,9 @@
     var maxMeasures = 0;
     var absMinPitch = 0;
     var absMaxPitch = 127;
+    var minPolyphony;
+    var maxPolyphony;
+    var possPolyphony = null;
     var lineLength = 25;
     var startKey = 'C';
     var noteLengths = ['q'];
@@ -141,8 +144,18 @@
 
         clef = "treble";
 
+        key = "C";
+
+        minMeasures = 10;
+        maxMeasures = 20;
+
         absMinPitch = sciToMidi("G3");
         absMaxPitch = sciToMidi("C6");
+
+        minPolyphony = 1;
+        maxPolyphony = 3;
+
+        possPolyphony = null;
     }
 
     //parses whatever's in the #input text area with parser.parse().  sets appropriate parameters based on data received from parsing.
@@ -171,6 +184,8 @@
             seed = data.seed;
         }
         else {
+            //we "unseed" briefly to randomly generate a new seed not based on a previous one.
+            Math.seedrandom(Date.now()%1000);
             var randSeed = Math.random().toString(36).substr(2, 5);
             seed = randSeed;
         }
@@ -186,6 +201,29 @@
         if (data.absRange != null){
             absMinPitch = data.absRange[0];
             absMaxPitch = data.absRange[1];
+        }
+
+        //polyphony
+        if (data.polyphony != null){
+            if (data.polyphony.constructor === Array){
+                //int list
+                if (data.polyphony[0] == "list"){
+                    data.polyphony.splice(0,1);
+                    possPolyphony = data.polyphony;
+                    console.log(possPolyphony);
+                }
+                //int range
+                else {
+                    minPolyphony = data.polyphony[0];
+                    maxPolyphony = data.polyphony[1];
+                }
+            }
+            //single int
+            else {
+                minPolyphony = data.polyphony;
+                maxPolyphony = data.polyphony;
+            }
+
         }
     }
 
@@ -219,7 +257,7 @@
     	var numNotes = 0;
     	while (n > 0){
     		n--;
-    		measureString = measureString + " " + genRandomNote();
+    		measureString = measureString + " " + genRandomNote(getPoly());
     		numNotes++;  //increment numNotes every time we add a note.
     	}
     	measureString = measureString + " |";
@@ -231,12 +269,9 @@
     }
 
     //TODO: potential infinite loop if user enters SMALL abs pitch range and LARGE poly.
-    //generates random note (can be a chord as well) within abs pitch range.
-    function genRandomNote(){
+    //generates random note with 'poly' pitches, all within abs pitch range.
+    function genRandomNote(poly){
         var noteString = "[";
-
-        //num of notes in chord
-        var poly = getPoly();
 
         //stores midi representation of notes
         var notes = [];
@@ -262,7 +297,10 @@
     }
 
     function getPoly(){
-        return randInt(3) + 1;
+        if (possPolyphony != null){
+            return possPolyphony[randInt(possPolyphony.length)];
+        }
+        return randInt(maxPolyphony - minPolyphony + 1) + minPolyphony;
     }
 
     </script>
@@ -272,7 +310,12 @@
     <p>Seed: <span id ="seed"></span> <br> <span id = "error"></span></p>
 
 
-    <textarea id="input">measures: 10</textarea>
+    <textarea id="input">measures: 10-20
+clef: treble
+key: C
+absRange: G3-C6
+polyphony: 1-3
+</textarea>
 
     <div id="notation"></div>
 

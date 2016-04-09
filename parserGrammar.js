@@ -12,16 +12,22 @@ ParameterList =
     }
 
 Parameter = 
-    w param:(PIntRangeOrInt/PKeySignature/PSeed/PSciNoteRange/PClef) w{
+    w param:(PIntRangeOrInt/PKeySignature/PSeed/PSciNoteRange/PClef/PIntListOrRangeOrInt) w{
         return param;
     }
 
 //all parameters that expect an integer range or an integer
 PIntRangeOrInt  =
     param:("measures") _ ":" _ value:(IntegerRange/Integer){
-        var par;
         if (param == "measures"){
             return {numMeasures: value};
+        }
+    }
+    
+PIntListOrRangeOrInt = 
+    param:("polyphony") _ ":" _ value:(IntegerList/IntegerRange/Integer){
+        if (param == "polyphony"){
+            return {polyphony: value};
         }
     }
     
@@ -51,7 +57,7 @@ PSciNoteRange =
     }
 
 Alphanumeric = 
-    chars: [a-z0-9]+{
+    chars: [A-Za-z0-9]+{
         return chars.join("");
     }
 
@@ -75,6 +81,18 @@ IntegerRange =
             error("Min value must be greater than max value");
         }
         return [first, second]; 
+    }
+    
+//two or more integers, separated by comma
+IntegerList = first: Integer rest:(IntegerListPiece)+ {
+        rest.push(first);
+        rest.unshift("list");
+        return rest;
+    }
+
+IntegerListPiece = 
+    _","_ int:Integer {
+        return int;
     }
 
 SciNoteRange = 
