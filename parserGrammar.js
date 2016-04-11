@@ -1,3 +1,19 @@
+Program = 
+    global:ParameterList staves:StaveList {
+        staves.unshift(global);
+        return staves;
+    }
+
+StaveList = 
+    staves:Stave+
+
+Stave = 
+    w name:Alphanumeric _ "{" w params:ParameterList w "}" w {
+        params.name = name;
+        return params;
+    }
+    
+
 ParameterList = 
     params:Parameter* {
         var paramList = {};

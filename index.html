@@ -15,6 +15,7 @@
 
 	<script type="text/javascript">
 
+    var staves = [new Object()];
     var OCTAVE = 12;
 	var MEASURE_LENGTH_PADDING = 2;
     var seed;
@@ -23,6 +24,7 @@
     var clef = "treble";
     var minMeasures = 0;
     var maxMeasures = 0;
+    var measures = 0;
     var absMinPitch = 0;
     var absMaxPitch = 127;
     var minPolyphony;
@@ -79,6 +81,7 @@
         return midi;
     }
 
+    //converts midi value of note pitch (int from 0 to 127) to corresponding ABC representation
     function midiToAbc(midi){
         var abcString;
         if (randInt(2) == 0) {
@@ -110,7 +113,8 @@
     //generates and renders piece based on current parameters
     function generate(){
 
-        presets();
+
+        reset();
 
         //parse
         var parseSuccess = true;
@@ -125,123 +129,163 @@
 
         //generate ABC string and render it
         if (parseSuccess){
-            setup();
+            defaults();
             ABCJS.renderAbc('notation', genABC());
         }
     }
 
+    //default values that depend on parsed values (eg default absRange depends on clef)
     function setup(){
 
     }
 
-    function presets(){
-
+    function reset(){
         //clear out prev sheet music
         $("#notation").html("");
 
         //clear out any error messages
         $("#error").html("");
 
-        clef = "treble";
+        staves = [];
+    }
 
-        key = "C";
+    //put this after parse and just check for null
+    function defaults(){
 
-        minMeasures = 10;
-        maxMeasures = 20;
+        if (staves[0].clef == null){
+            staves[0].clef = "treble";
+        }
 
-        absMinPitch = sciToMidi("G3");
-        absMaxPitch = sciToMidi("C6");
+        if (staves[0].key == null){
+            staves[0].key = "C";
+        }
 
-        minPolyphony = 1;
-        maxPolyphony = 3;
+        if (staves[0].minMeasures == null){
+            staves[0].minMeasures = 10;
+            staves[0].maxMeasures = 20;
+        }
 
-        possPolyphony = null;
+        if (staves[0].absMinPitch == null){
+            staves[0].absMinPitch = sciToMidi("G3");
+            staves[0].absMaxPitch = sciToMidi("C6");
+        }
+
+        if (staves[0].absMinPitch == null && staves[0].possPolyphony == null){
+            staves[0].minPolyphony = 1;
+            staves[0].maxPolyphony = 3;
+        }
     }
 
     //parses whatever's in the #input text area with parser.parse().  sets appropriate parameters based on data received from parsing.
     function parse(){
     	var data = parser.parse($('textarea#input').val());
     	
-    	//number of measures.  either array (when user enters a min/max range) or an int.
-        if (data.numMeasures != null){
-            if (data.numMeasures.constructor === Array){
-               minMeasures = data.numMeasures[0];
-               maxMeasures = data.numMeasures[1];
-            }
-            else {
-                minMeasures = data.numMeasures;
-                maxMeasures = data.numMeasures;
-            }
-        }
+        for (var i = 0; i < data.length; i++){
 
-        //starting key
-        if (data.key != null){
-            startKey = data.key;
-        }
+            staves.push(new Object());
 
-        //seed
-        if (data.seed != null){
-            seed = data.seed;
-        }
-        else {
-            //we "unseed" briefly to randomly generate a new seed not based on a previous one.
-            Math.seedrandom(Date.now()%1000);
-            var randSeed = Math.random().toString(36).substr(2, 5);
-            seed = randSeed;
-        }
-        Math.seedrandom(seed);
-        $("#seed").html(seed);
-
-        //clef
-        if (data.clef != null){
-            clef = data.clef;
-        }
-
-        //absolute min/max pitch
-        if (data.absRange != null){
-            absMinPitch = data.absRange[0];
-            absMaxPitch = data.absRange[1];
-        }
-
-        //polyphony
-        if (data.polyphony != null){
-            if (data.polyphony.constructor === Array){
-                //int list
-                if (data.polyphony[0] == "list"){
-                    data.polyphony.splice(0,1);
-                    possPolyphony = data.polyphony;
-                    console.log(possPolyphony);
+        	//number of measures.  either array (when user enters a min/max range) or an int.
+            if (data[i].numMeasures != null){
+                if (data[i].numMeasures.constructor === Array){
+                   staves[i].minMeasures = data[i].numMeasures[0];
+                   staves[i].maxMeasures = data[i].numMeasures[1];
                 }
-                //int range
                 else {
-                    minPolyphony = data.polyphony[0];
-                    maxPolyphony = data.polyphony[1];
+                    staves[i].minMeasures = data[i].numMeasures;
+                    staves[i].maxMeasures = data[i].numMeasures;
                 }
             }
-            //single int
-            else {
-                minPolyphony = data.polyphony;
-                maxPolyphony = data.polyphony;
+
+            //starting key
+            if (data[i].key != null){
+                staves[i].startKey = data[i].key;
             }
 
+            //seed
+            if (data[0].seed != null){
+                seed = data[0].seed;
+            }
+            else {
+                //we "unseed" briefly to randomly generate a new seed not based on a previous one.
+                Math.seedrandom(Date.now()%1000);
+                var randSeed = Math.random().toString(36).substr(2, 5);
+                seed = randSeed;
+            }
+            Math.seedrandom(seed);
+            $("#seed").html(seed);
+
+            //clef
+            if (data[i].clef != null){
+                staves[i].clef = data[i].clef;
+            }
+
+            //absolute min/max pitch
+            if (data[i].absRange != null){
+                staves[i].absMinPitch = data[i].absRange[0];
+                staves[i].absMaxPitch = data[i].absRange[1];
+            }
+
+            //polyphony
+            if (data[i].polyphony != null){
+                if (data[i].polyphony.constructor === Array){
+                    //int list
+                    if (data[i].polyphony[0] == "list"){
+                        data[i].polyphony.splice(0,1);
+                        staves[i].possPolyphony = data[i].polyphony;
+                        console.log(possPolyphony);
+                    }
+                    //int range
+                    else {
+                        staves[i].minPolyphony = data[i].polyphony[0];
+                        staves[i].maxPolyphony = data[i].polyphony[1];
+                    }
+                }
+                //single int
+                else {
+                    staves[i].minPolyphony = data[i].polyphony;
+                    staves[i].maxPolyphony = data[i].polyphony;
+                }
+            }
         }
     }
 
     function genABC(){
         var genString ="M: " + timeNumerator + "/" + timeDenominator + "\n";
         genString = genString + "L: 1/4 \n"
-        genString = genString + "K: " + startKey + " " + clef + "\n"
+        genString = genString + "K: " + staves[0].startKey + " " + staves[0].clef + "\n"
 
-        var m = randInt(maxMeasures - minMeasures + 1) + minMeasures;
+        measures = randInt(staves[0].maxMeasures - staves[0].minMeasures + 1) + staves[0].minMeasures;
+        console.log(staves.length);
+        for (var i = 1; i < staves.length; i++) {
+
+            //if a clef isn't specified for this stave, use global clef
+            var clef;
+            if (staves[i].clef != null){
+                clef = staves[i].clef;
+            }
+            else clef = staves[0].clef;
+            genString = genString + "[V: " + i + " clef: " + clef + "] ";
+            genString = genString + genStave(i) + "\n";
+            console.log(genString);
+        }
+
+        genString.replace(/[\n\n]{2,}/g, "\n");
+
+        return genString;
+    }
+
+    function genStave(stave){
+        var genString = "";
         var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
+        var m = measures;
         while (m > 0){
-            var measure = genMeasure();
+            var measure = genMeasure(stave);
             m--;
             genString = genString + measure.measureString;
             curLineLength += measure.numNotes;
 
-            //start new line if we're past lineLength
-            if (curLineLength >= lineLength){
+            //start new line if we're past lineLength, but only if we have some measures left.
+            if (curLineLength >= lineLength && m > 0){
                 curLineLength = 0;
                 genString = genString + "\n";
             }
@@ -250,14 +294,14 @@
     }
 
     //returns an object that wraps two elements: measureString, numNotes
-    function genMeasure(){
+    function genMeasure(stave){
 
     	var measureString = "";
     	var n = 4;
     	var numNotes = 0;
     	while (n > 0){
     		n--;
-    		measureString = measureString + " " + genRandomNote(getPoly());
+    		measureString = measureString + " " + genRandomNote(stave, getPoly(stave));
     		numNotes++;  //increment numNotes every time we add a note.
     	}
     	measureString = measureString + " |";
@@ -265,16 +309,30 @@
     	return {
     		measureString: measureString, 
     		numNotes: numNotes
-    	};
+    	}
     }
 
     //TODO: potential infinite loop if user enters SMALL abs pitch range and LARGE poly.
     //generates random note with 'poly' pitches, all within abs pitch range.
-    function genRandomNote(poly){
+    function genRandomNote(stave, poly){
         var noteString = "[";
 
         //stores midi representation of notes
         var notes = [];
+
+        var absMinPitch, absMaxPitch;
+        if (staves[stave].absMinPitch != null){
+            absMinPitch = staves[stave].absMinPitch;
+        }
+        else {
+            absMinPitch = staves[0].absMinPitch;
+        }
+        if (staves[stave].absMaxPitch != null){
+            absMaxPitch = staves[stave].absMaxPitch;
+        }
+        else {
+            absMaxPitch = staves[0].absMaxPitch;
+        }
 
         //add notes 'poly' times
         while (poly > 0){
@@ -296,11 +354,20 @@
         return noteString;
     }
 
-    function getPoly(){
-        if (possPolyphony != null){
-            return possPolyphony[randInt(possPolyphony.length)];
+    //returns a random possible poly amount (num of notes in chord)
+    //order of precedence - stave poss, stave max/min, global poss, global max/min
+    function getPoly(stave){
+
+        if (staves[stave].possPolyphony != null){
+            return staves[stave].possPolyphony[randInt(staves[stave].possPolyphony.length)];
         }
-        return randInt(maxPolyphony - minPolyphony + 1) + minPolyphony;
+        else if (staves[stave].maxPolyphony != null){
+            return randInt(staves[stave].maxPolyphony - staves[stave].minPolyphony + 1) + staves[stave].minPolyphony;
+        }
+        else if (staves[0].possPolyphony != null){
+            return staves[0].possPolyphony[randInt(staves[0].possPolyphony.length)];
+        }
+        return randInt(staves[0].maxPolyphony - staves[0].minPolyphony + 1) + staves[0].minPolyphony;
     }
 
     </script>
@@ -314,7 +381,16 @@
 clef: treble
 key: C
 absRange: G3-C6
+polyphony: 1
+
+Stave1{
 polyphony: 1-3
+}
+
+Stave2{
+clef: bass
+absRange: G1-G3
+}
 </textarea>
 
     <div id="notation"></div>
