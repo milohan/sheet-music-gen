@@ -33,15 +33,44 @@ Parameter =
     }
 
 //all parameters that expect an integer range or an integer
+//always outputs an array of two elements - min and max
 PIntRangeOrInt  =
     param:("measures") _ ":" _ value:(IntegerRange/Integer){
+        
+        //ensure that we return an array
+        if (value.constructor != Array){
+            value = [value, value];
+        }
+        
         if (param == "measures"){
             return {numMeasures: value};
         }
     }
-    
+
+//always outputs a list (array) of ALL possible elements (not just min and max)
 PIntListOrRangeOrInt = 
     param:("polyphony") _ ":" _ value:(IntegerList/IntegerRange/Integer){
+    
+        if (value.constructor === Array) {
+            //integer range
+            if (value[0] == "list") {
+                value.splice(0,1);
+            }
+            //list
+            else {
+                var max= Math.max(value[0], value[1]);
+                var min = Math.min(value[0], value[1]);
+                value = [];
+                for (var i = min; i <= max; i++){
+                    value.push(i);
+                }
+            }
+        }
+        //integer
+        else {
+            value = [value];
+        }
+        
         if (param == "polyphony"){
             return {polyphony: value};
         }

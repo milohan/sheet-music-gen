@@ -37,7 +37,7 @@ parser = (function() {
         peg$startRuleFunction  = peg$parseProgram,
 
         peg$c0 = function(global, staves) {
-            	staves.unshift(global);
+                staves.unshift(global);
                 return staves;
             },
         peg$c1 = "{",
@@ -45,9 +45,9 @@ parser = (function() {
         peg$c3 = "}",
         peg$c4 = { type: "literal", value: "}", description: "\"}\"" },
         peg$c5 = function(name, params) {
-            	params.name = name;
-        		return params;
-        	},
+                params.name = name;
+                return params;
+            },
         peg$c6 = function(params) {
                 var paramList = {};
                 
@@ -67,6 +67,12 @@ parser = (function() {
         peg$c10 = ":",
         peg$c11 = { type: "literal", value: ":", description: "\":\"" },
         peg$c12 = function(param, value) {
+                
+                //ensure that we return an array
+                if (value.constructor != Array){
+                    value = [value, value];
+                }
+                
                 if (param == "measures"){
                     return {numMeasures: value};
                 }
@@ -74,6 +80,27 @@ parser = (function() {
         peg$c13 = "polyphony",
         peg$c14 = { type: "literal", value: "polyphony", description: "\"polyphony\"" },
         peg$c15 = function(param, value) {
+            
+                if (value.constructor === Array) {
+                	//integer range
+                	if (value[0] == "list") {
+                    	value.splice(0,1);
+                    }
+                    //list
+                    else {
+                    	var max= Math.max(value[0], value[1]);
+                        var min = Math.min(value[0], value[1]);
+                        value = [];
+                        for (var i = min; i <= max; i++){
+                        	value.push(i);
+                        }
+                    }
+                }
+                //integer
+                else {
+                    value = [value];
+                }
+            	
                 if (param == "polyphony"){
                     return {polyphony: value};
                 }
