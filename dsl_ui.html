@@ -1,0 +1,279 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <link href="nouislider.min.css" rel="stylesheet">
+
+    <style>
+    body {
+        background-color: lavender;
+    }
+    .form-control-inline {
+        min-width: 0;
+        max-width: 60px;
+        width: auto;
+        display: inline;
+        height: auto;
+
+        padding-bottom: 2px;
+        padding-top: 2px;
+        padding-right: 0px;
+        padding-left:5px;
+    }
+
+    .btn-clef{
+        padding-left: 5px;
+        padding-right: 5px;
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
+    .btn-acc{
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 3px;
+        padding-bottom: 3px;
+        font-size: 20px;
+    }
+
+    .slider{
+        display: inline-block;
+        width: 300px;
+    }
+
+    .noUi-connect{
+        background:gray;
+    }
+
+    .dropdown-menu {
+        width: auto; 
+        min-width:0px;
+    }
+
+    .param-name{
+        min-width: 80px;
+        display:inline-block;
+    }
+
+    .param{
+        padding-top:5px;
+        padding-bottom: 5px;
+        display: inline-block;
+    }
+
+    </style>
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <br>
+                SHEET MUSIC GENERATOR
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-4">
+
+                <div class = "param">
+                    <div class = "param-name">
+                        Measures
+                    </div>
+                    <input class="form-control form-control-inline" input type="number" id="measures" min="0" />
+
+                </div>
+
+
+                <br>
+
+                <div class = "param">
+
+                    <div class = "param-name">
+
+                        Key
+                    </div>
+                    <!--  NOTE LETTER  -->
+                    <div class="btn-group">
+                        <button type="button" value = "C" id = "key-letter" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            C <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">A</a></li>
+                            <li><a href="#">B</a></li>
+                            <li><a href="#">C</a></li>
+                            <li><a href="#">D</a></li>
+                            <li><a href="#">E</a></li>
+                            <li><a href="#">F</a></li>
+                            <li><a href="#">G</a></li>
+                        </ul>
+                    </div>
+
+                    <!--  FLAT/NATURAL/SHARP  -->
+                    <div class="btn-group" data-toggle="buttons" id = "key-accidental">
+                        <label class="btn btn-default btn-acc">
+                            <input type="radio" name="options" id="option1" autocomplete="off" value = "b"> &#9837; 
+                        </label>
+                        <label class="btn btn-default btn-acc active">
+                            <input type="radio" name="options" id="option2" autocomplete="off" value = "" checked = ""> &#9838; 
+                        </label>
+                        <label class="btn btn-default btn-acc">
+                            <input type="radio" name="options" id="option3" autocomplete="off" value = "#"> &#9839; 
+                        </label>
+                    </div>
+
+                    <!--  Maj/Min  -->
+                    <div class="btn-group" data-toggle="buttons" id = "key-tonality">
+                        <label class="btn btn-default active">
+                            <input type="radio" name="options" id="option1" autocomplete="off" value = "Major" checked = "">Maj
+                        </label>
+                        <label class="btn btn-default">
+                            <input type="radio" name="options" id="option2" autocomplete="off" value = "Minor">Min
+                        </label>
+                    </div>
+                </div>
+
+                <br>
+                <div class = "param">
+
+                    <div class = "param-name">
+
+                        Clef 
+                    </div>
+
+                    <!--  CLEFS  -->
+                    <div class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default btn-clef active">
+                            <input type="radio" name="options" id="option1" autocomplete="off" checked = "">
+                            <img src="siteMedia/clefTreble.png" height = "35">
+                        </label>
+                        <label class="btn btn-default btn-clef">
+                            <input type="radio" name="options" id="option2" autocomplete="off">
+                            <img src="siteMedia/clefBass.png" height = "35">
+
+                        </label>
+                        <label class="btn btn-default btn-clef">
+                            <input type="radio" name="options" id="option3" autocomplete="off">
+                            <img src="siteMedia/clefAltoTenor.png" height = "35">
+
+                        </label>
+                    </div>
+                </div>
+
+                <br>
+
+                <div class = "param">
+
+                    <div class = "param-name">
+
+                        Range
+
+                    </div>
+                    <div id = "range-slider" class = "slider">
+                    </div>
+                </div>
+
+                <br>
+
+                <div class = "param">
+
+                    <div class = "param-name">
+
+                        Polyphony
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            1 <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">1</a></li>
+                            <li><a href="#">2</a></li>
+                            <li><a href="#">3</a></li>
+                            <li><a href="#">4</a></li>
+                            <li><a href="#">5</a></li>
+                            <li><a href="#">6</a></li>
+                            <li><a href="#">7</a></li>
+                            <li><a href="#">8</a></li>
+                        </ul>
+                    </div>
+                    to
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            3 <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">1</a></li>
+                            <li><a href="#">2</a></li>
+                            <li><a href="#">3</a></li>
+                            <li><a href="#">4</a></li>
+                            <li><a href="#">5</a></li>
+                            <li><a href="#">6</a></li>
+                            <li><a href="#">7</a></li>
+                            <li><a href="#">8</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+              <button type="button" class="btn btn-default" onclick = "generateCode()">
+                Test
+            </button>
+        </div>
+        <div class="col-sm-4">
+        </div>
+    </div>
+</div>
+<script src="nouislider.min.js"></script>
+<script src="abcjs_basic_2.3-min.js" type="text/javascript"></script>
+<script src="parser.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script>
+
+$(".dropdown-menu li").click(function(){
+  
+  //set html of button to list element's text
+  $(this).parents(".btn-group").find('.btn').html(
+      $(this).text()+" <span class=\"caret\"></span>"
+      );
+
+  //set val of button to list element's text
+  $(this).parents(".btn-group").find('.btn').val($(this).text());
+});
+
+//slider for pitch range
+var slider = document.getElementById('range-slider');
+noUiSlider.create(slider, {
+    start: [20, 80],
+    connect: true,
+    range: {
+        'min': 0,
+        'max': 127
+    }
+});
+
+//creates dsl code based on form values
+function generateCode(){
+    var code = "";
+    var measures = $("#measures").val();
+    var key = "" + $("#key-letter").val() + $("#key-accidental label.active input").val() + " " + $("#key-tonality label.active input").val();
+    console.log(key);
+
+    code = "measures: " + measures + "\n";
+    code = code + "key: " + key + "\n";
+
+    console.log(code);
+}
+
+</script>
+
+
+
+</body>
+</html>
