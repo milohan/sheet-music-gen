@@ -68,6 +68,11 @@
         display: inline-block;
     }
 
+    #code-output{
+        max-width:300px;
+        height: auto;
+    }
+
     </style>
 </head>
 <body>
@@ -86,7 +91,7 @@
                     <div class = "param-name">
                         Measures
                     </div>
-                    <input class="form-control form-control-inline" input type="number" id="measures" min="0" />
+                    <input class="form-control form-control-inline" input type="number" default value = "10" id="measures" min="0" />
 
                 </div>
 
@@ -148,18 +153,17 @@
                     </div>
 
                     <!--  CLEFS  -->
-                    <div class="btn-group" data-toggle="buttons">
+                    <div class="btn-group" data-toggle="buttons" id = "clef">
                         <label class="btn btn-default btn-clef active">
-                            <input type="radio" name="options" id="option1" autocomplete="off" checked = "">
+                            <input type="radio" value="treble" name="options" id="option1" autocomplete="off" checked = "">
                             <img src="media/clefTreble.png" height = "35">
                         </label>
                         <label class="btn btn-default btn-clef">
-                            <input type="radio" name="options" id="option2" autocomplete="off">
+                            <input type="radio" value="bass" name="options" id="option2" autocomplete="off">
                             <img src="media/clefBass.png" height = "35">
-
                         </label>
                         <label class="btn btn-default btn-clef">
-                            <input type="radio" name="options" id="option3" autocomplete="off">
+                            <input type="radio" value="tenor" name="options" id="option3" autocomplete="off">
                             <img src="media/clefAltoTenor.png" height = "35">
 
                         </label>
@@ -188,7 +192,7 @@
                         Polyphony
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" id = "polyphony-min" value="1" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             1 <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
@@ -204,7 +208,7 @@
                     </div>
                     to
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" id = "polyphony-max" value="3" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             3 <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
@@ -224,6 +228,7 @@
               <button type="button" class="btn btn-default" onclick = "generateCode()">
                 Test
             </button>
+                <textarea class="form-control" spellcheck="false" id="code-output" placeholder="Code output" onkeyup="textAreaAdjust(this)" ></textarea>
         </div>
         <div class="col-sm-4">
         </div>
@@ -234,7 +239,9 @@
 <script src="parser.js" type="text/javascript"></script>
 <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="script.js"></script>
 <script>
+
 
 $(".dropdown-menu li").click(function(){
   
@@ -242,7 +249,6 @@ $(".dropdown-menu li").click(function(){
   $(this).parents(".btn-group").find('.btn').html(
       $(this).text()+" <span class=\"caret\"></span>"
       );
-
   //set val of button to list element's text
   $(this).parents(".btn-group").find('.btn').val($(this).text());
 });
@@ -250,23 +256,43 @@ $(".dropdown-menu li").click(function(){
 //slider for pitch range
 var slider = document.getElementById('range-slider');
 noUiSlider.create(slider, {
-    start: [20, 80],
+    start: [50, 80],
     connect: true,
+    step: 1,
     range: {
-        'min': 0,
-        'max': 127
+        'min': 12,
+        'max': 130
     }
 });
+
+function textAreaAdjust(area) {
+    area.style.height = "1px";
+    area.style.height = (25+area.scrollHeight)+"px";
+}
 
 //creates dsl code based on form values
 function generateCode(){
     var code = "";
     var measures = $("#measures").val();
     var key = "" + $("#key-letter").val() + $("#key-accidental label.active input").val() + " " + $("#key-tonality label.active input").val();
-    console.log(key);
+    var clef = $("#clef label.active input").val();
+    var range = slider.noUiSlider.get();
+    var polyphony = $("#polyphony-min").val() + "-" + $("#polyphony-max").val();
+
+    //convert slider values (MIDI) to scientific pitch notation.
+    for (var i = 0; i<range.length; i++){
+        range[i] = midiToSci(parseInt(range[i]));
+    }
+    range = "" + range[0] + "-" + range[1];
 
     code = "measures: " + measures + "\n";
     code = code + "key: " + key + "\n";
+    code = code + "clef: " + clef + "\n";
+    code = code + "absRange: " + range + "\n";
+    code = code + "polyphony: " + polyphony + "\n";
+
+    $("#code-output").val(code);
+    textAreaAdjust($("#code-output")[0]);
 
     console.log(code);
 }
