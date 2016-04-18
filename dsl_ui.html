@@ -223,28 +223,32 @@
                         </ul>
                     </div>
                 </div>
+                <br>
+                <br>
+                <br>
+                Code output
+                <textarea class="form-control" spellcheck="false" id="code-output" placeholder="Code output" onkeyup="textAreaAdjust(this)" readonly></textarea>
             </div>
-            <div class="col-sm-4">
-              <button type="button" class="btn btn-default" onclick = "generateCode()">
-                Test
-            </button>
-                <textarea class="form-control" spellcheck="false" id="code-output" placeholder="Code output" onkeyup="textAreaAdjust(this)" ></textarea>
-        </div>
-        <div class="col-sm-4">
+            <div class="col-sm-8">
+                <button type="button" class="btn btn-default" onclick = "generateCode()">
+                    Generate
+                </button>
+                <div id="notation"></div>
+
+            </div>
         </div>
     </div>
-</div>
-<script src="nouislider.min.js"></script>
-<script src="abcjs_basic_2.3-min.js" type="text/javascript"></script>
-<script src="parser.js" type="text/javascript"></script>
-<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-<script src="script.js"></script>
-<script>
+    <script src="nouislider.min.js"></script>
+    <script src="abcjs_basic_2.3-min.js" type="text/javascript"></script>
+    <script src="parser.js" type="text/javascript"></script>
+    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
+    <script>
 
 
-$(".dropdown-menu li").click(function(){
-  
+    $(".dropdown-menu li").click(function(){
+
   //set html of button to list element's text
   $(this).parents(".btn-group").find('.btn').html(
       $(this).text()+" <span class=\"caret\"></span>"
@@ -287,15 +291,34 @@ function generateCode(){
 
     code = "measures: " + measures + "\n";
     code = code + "key: " + key + "\n";
+
+    code=  code + "Stave1{\n";
+
     code = code + "clef: " + clef + "\n";
     code = code + "absRange: " + range + "\n";
     code = code + "polyphony: " + polyphony + "\n";
+
+    code = code + "}";
 
     $("#code-output").val(code);
     textAreaAdjust($("#code-output")[0]);
 
     console.log(code);
+
+
+
+
+    //turn code into sheet music
+    var abcString = codeToABC(code);
+    if (abcString[0]){
+        ABCJS.renderAbc('notation', abcString[1]);
+    }
+    else {
+        var err = abcString[1];
+        $("#error").html(err.name + ": " + err.message);
+    }
 }
+
 
 </script>
 

@@ -1,5 +1,4 @@
 
-var staves = [new Object()];
 var OCTAVE = 12;
 var MEASURE_LENGTH_PADDING = 2;
 var seed;
@@ -95,27 +94,35 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
 
     //generates and renders piece based on current parameters
     function generate(){
-
-
+        
         reset();
+        var abcString = codeToABC($('textarea#input').val());
+        if (abcString[0]){
+           ABCJS.renderAbc('notation', abcString[1]);
+        }
+        else {
+            var err = abcString[1];
+            $("#error").html(err.name + ": " + err.message);
+        }
+    }
 
-        //parse
-        var parseSuccess = true;
+    //returns array of [boolean, obj]
+    //boolean is true/false depending on success of parse
+    //obj is a string of ABC if success, error object if failure
+    function codeToABC(string){
+        var staves = [];
         try {
-            staves = parser.parse($('textarea#input').val());
+            staves = parser.parse(string);
         }
         catch(err) {
-            $("#error").html(err.name + ": " + err.message);
             console.log(err);
-            parseSuccess = false;
+            return [false, err];
         }
 
-        //generate ABC string and render it
-        if (parseSuccess){
-            defaults();
-            applyGlobals();
-            ABCJS.renderAbc('notation', genABC());
-        }
+        defaults(staves);
+        applyGlobals(staves);
+
+        return [true, genABC(staves)];
     }
 
     function reset(){
@@ -124,12 +131,10 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
 
         //clear out any error messages
         $("#error").html("");
-
-        staves = [];
     }
 
     //put this after parse and just check for null
-    function defaults(){
+    function defaults(staves){
 
         if (staves[0].clef == null){
             staves[0].clef = "treble";
@@ -153,7 +158,7 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
     }
 
     //applies global parameters where needed
-    function applyGlobals(){
+    function applyGlobals(staves){
         for (var i = 1; i < staves.length; i++){
             if (staves[i].clef == null){
                 staves[i].clef = staves[0].clef;
@@ -173,19 +178,16 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         }
     }
 
-    function genABC(){
+    function genABC(staves){
         var genString ="M: " + timeNumerator + "/" + timeDenominator + "\n";
         genString = genString + "L: 1/4 \n"
         genString = genString + "K: " + staves[0].key + " " + staves[0].clef + "\n"
 
         measures = randInt(staves[0].numMeasures[1] - staves[0].numMeasures[0] + 1) + staves[0].numMeasures[0];
-        console.log(staves.length);
         for (var i = 1; i < staves.length; i++) {
-
-            //if a clef isn't specified for this stave, use global clef
             var clef = staves[i].clef;
             genString = genString + "[V: " + i + " clef: " + clef + "] ";
-            genString = genString + genStave(i) + "\n";
+            genString = genString + genStave(i, staves) + "\n";
             console.log(genString);
         }
 
@@ -194,12 +196,12 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         return genString;
     }
 
-    function genStave(stave){
+    function genStave(stave, staves){
         var genString = "";
         var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
         var m = measures;
         while (m > 0){
-            var measure = genMeasure(stave);
+            var measure = genMeasure(stave, staves);
             m--;
             genString = genString + measure.measureString;
             curLineLength += measure.numNotes;
@@ -214,14 +216,14 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
     }
 
     //returns an object that wraps two elements: measureString, numNotes
-    function genMeasure(stave){
+    function genMeasure(stave, staves){
 
     	var measureString = "";
     	var n = 4;
     	var numNotes = 0;
     	while (n > 0){
     		n--;
-    		measureString = measureString + " " + genRandomNote(stave, getPoly(stave));
+    		measureString = measureString + " " + genRandomNote(stave, getPoly(stave, staves), staves);
     		numNotes++;  //increment numNotes every time we add a note.
     	}
     	measureString = measureString + " |";
@@ -234,7 +236,7 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
 
     //TODO: potential infinite loop if user enters SMALL abs pitch range and LARGE poly.
     //generates random note with 'poly' pitches, all within abs pitch range.
-    function genRandomNote(stave, poly){
+    function genRandomNote(stave, poly, staves){
         var noteString = "[";
 
         //stores midi representation of notes
@@ -266,7 +268,7 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
 
     //returns a random possible poly amount (num of notes in chord)
     //order of precedence - stave poss, stave max/min, global poss, global max/min
-    function getPoly(stave){
+    function getPoly(stave, staves){
 
         return staves[stave].polyphony[randInt(staves[stave].polyphony.length)];
 
