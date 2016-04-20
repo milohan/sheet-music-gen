@@ -29,10 +29,8 @@
     }
 
     .btn-clef{
-        padding-left: 5px;
-        padding-right: 5px;
-        padding-top: 3px;
-        padding-bottom: 3px;
+        padding: 0 9px 0 5px;
+
     }
 
     .btn-acc{
@@ -156,16 +154,19 @@
                     <div class="btn-group" data-toggle="buttons" id = "clef">
                         <label class="btn btn-default btn-clef active">
                             <input type="radio" value="treble" name="options" id="option1" autocomplete="off" checked = "">
-                            <img src="media/clefTreble.png" height = "35">
+                            <img src="media/clefTreble.png" height = "40">
                         </label>
                         <label class="btn btn-default btn-clef">
                             <input type="radio" value="bass" name="options" id="option2" autocomplete="off">
-                            <img src="media/clefBass.png" height = "35">
+                            <img src="media/clefBass.png" height = "40">
                         </label>
                         <label class="btn btn-default btn-clef">
-                            <input type="radio" value="tenor" name="options" id="option3" autocomplete="off">
-                            <img src="media/clefAltoTenor.png" height = "35">
-
+                            <input type="radio" value="alto" name="options" id="option3" autocomplete="off">
+                            <img src="media/clefAlto.png" height = "40">
+                        </label>
+                        <label class="btn btn-default btn-clef">
+                            <input type="radio" value="tenor" name="options" id="option4" autocomplete="off">
+                            <img src="media/clefTenor.png" height = "40">
                         </label>
                     </div>
                 </div>
@@ -227,10 +228,10 @@
                 <br>
                 <br>
                 Code output
-                <textarea class="form-control" spellcheck="false" id="code-output" placeholder="Code output" onkeyup="textAreaAdjust(this)" readonly></textarea>
+                <textarea class="form-control" spellcheck="false" id="code-output" onkeyup="textAreaAdjust(this)" readonly></textarea>
             </div>
             <div class="col-sm-8">
-                <button type="button" class="btn btn-default" onclick = "generateCode()">
+                <button type="button" class="btn btn-default" onclick = "generate()">
                     Generate
                 </button>
                 <div id="notation"></div>
@@ -243,6 +244,7 @@
     <script src="parser.js" type="text/javascript"></script>
     <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
     <script src="script.js"></script>
     <script>
 
@@ -274,8 +276,9 @@ function textAreaAdjust(area) {
     area.style.height = (25+area.scrollHeight)+"px";
 }
 
+
 //creates dsl code based on form values
-function generateCode(){
+function generate(){
     var code = "";
     var measures = $("#measures").val();
     var key = "" + $("#key-letter").val() + $("#key-accidental label.active input").val() + " " + $("#key-tonality label.active input").val();
@@ -303,19 +306,14 @@ function generateCode(){
     $("#code-output").val(code);
     textAreaAdjust($("#code-output")[0]);
 
-    console.log(code);
-
-
-
-
     //turn code into sheet music
     var abcString = codeToABC(code);
-    if (abcString[0]){
-        ABCJS.renderAbc('notation', abcString[1]);
+    if (abcString.success){
+        ABCJS.renderAbc('notation', abcString.abc);
     }
     else {
-        var err = abcString[1];
-        $("#error").html(err.name + ": " + err.message);
+        var err = abcString.abc;
+        alert(err.name + ": " + err.message);
     }
 }
 

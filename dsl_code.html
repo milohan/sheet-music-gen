@@ -34,5 +34,30 @@ absRange: G1-G3
 <script src="http://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
 <script src="script.js"></script>
 
+<script>
+    //generates and renders piece based on current parameters
+    function generate(){
+
+    	reset();
+    	var abcString = codeToABC($('textarea#input').val());
+    	if (abcString.success){
+    		ABCJS.renderAbc('notation', abcString.abc);
+    		$("#seed").html(abcString.seed);
+    	}
+    	else {
+    		var err = abcString.abc;
+    		$("#error").html(err.name + ": " + err.message);
+    	}
+    }
+
+    function reset(){
+        //clear out prev sheet music
+        $("#notation").html("");
+
+        //clear out any error messages
+        $("#error").html("");
+    }
+
+</script>
 </body>
 </html>
