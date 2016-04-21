@@ -258,7 +258,7 @@
     $(".dropdown-menu li").click(function(){
 
         if (!$(this).hasClass("disabled")){
-         
+
   //set html of button to list element's text
   $(this).parents(".btn-group").find('.btn').html(
       $(this).text()+" <span class=\"caret\"></span>"
@@ -269,6 +269,7 @@
 }
 });
 
+    //when choosing min value for int-range, automatically disable invalid values of corresponding max list
     $(".dropdown-menu li").click(function(){
 
         //check if the button we clicked is part of a min-range list
@@ -290,9 +291,14 @@
             //if min is larger than current max, set max to min
             var maxButtonID = maxID + "-button";
             if (parseInt($(maxButtonID).text()) < minValue){
+
+                //set html to min value
                 $(maxButtonID).html(
                     minValue +" <span class=\"caret\"></span>"
                     );
+
+                //set val to min value
+                $(maxButtonID).val(minValue);
             }
         }
 
