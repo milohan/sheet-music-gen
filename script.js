@@ -3,7 +3,6 @@ var OCTAVE = 12;
 var MEASURE_LENGTH_PADDING = 2;
 var timeNumerator = 4;
 var timeDenominator = 4;
-var measures = 0;
 var lineLength = 25;
 var startKey = 'C';
 var noteLengths = ['q'];
@@ -105,6 +104,7 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
             staves = parser.parse(string);
         }
         catch(err) {
+            console.log(err);
             return {
                 "success": false, 
                 "abc": err,
@@ -142,9 +142,10 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         if (staves[0].key == null){
             staves[0].key = "C";
         }
+        console.log(staves[0].numMeasures);
 
-        if (staves[0].measures == null){
-            staves[0].measures = [10, 20];
+        if (staves[0].numMeasures == null){
+            staves[0].numMeasures = [10, 20];
         }
 
         if (staves[0].absRange == null){
@@ -165,8 +166,8 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
             if (staves[i].key == null){
                 staves[i].key = staves[0].key;
             }
-            if (staves[i].measure == null){
-                staves[i].measure = staves[0].measure;
+            if (staves[i].numMeasures == null){
+                staves[i].numMeasures = staves[0].numMeasures;
             }
             if (staves[i].absRange == null){
                 staves[i].absRange = staves[0].absRange;
@@ -182,11 +183,11 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         genString = genString + "L: 1/4 \n"
         genString = genString + "K: " + staves[0].key + " " + staves[0].clef + "\n"
 
-        measures = randInt(staves[0].numMeasures[1] - staves[0].numMeasures[0] + 1) + staves[0].numMeasures[0];
+        var measures = randInt(staves[0].numMeasures[1] - staves[0].numMeasures[0] + 1) + staves[0].numMeasures[0];
         for (var i = 1; i < staves.length; i++) {
             var clef = staves[i].clef;
             genString = genString + "[V: " + i + " clef: " + clef + "] ";
-            genString = genString + genStave(staves[i]) + "\n";
+            genString = genString + genStave(staves[i], measures) + "\n";
             console.log(genString);
         }
 
@@ -195,7 +196,7 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         return genString;
     }
 
-    function genStave(stave){
+    function genStave(stave, measures){
         var genString = "";
         var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
         var m = measures;
@@ -244,6 +245,7 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         var absMinPitch, absMaxPitch;
         absMinPitch = stave.absRange[0];
         absMaxPitch = stave.absRange[1];
+        console.log("min:" + absMinPitch, "max:" + absMaxPitch);
         
         //add notes 'poly' times
         while (poly > 0){
@@ -256,6 +258,8 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
             }
             notes[notes.length] = posNote;
         }
+
+        console.log(notes);
 
         //create string from midi notes in 'note' array
         for (var i = 0; i < notes.length; i++){

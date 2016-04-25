@@ -32,21 +32,54 @@ absRange: G1-G3
 <script src="parser.js" type="text/javascript"></script>
 <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
+
+
+<!-- code mirror -->
+<script src="codemirror/lib/codemirror.js"></script>
+<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+<script src="codemirror/addon/mode/simple.js"></script>
+
 <script src="script.js"></script>
 
 <script>
+
+CodeMirror.defineSimpleMode("dsl", {
+  start: [
+    // RULES
+    {regex: /^(measures|clef|key|absRange|polyphony|seed)(?=:)/, token: "keyword"},
+    {regex: /^[A-z0-9]+(?=\{)/, token: "def", next: "insideStave", indent: true},
+    //{regex: /^[A-Ga-g][0-9]/, token:"keyword"},
+    //{regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"}
+  ],
+  // The multi-line comment state.
+  insideStave: [
+  	{regex: /^(measures|clef|key|absRange|polyphony)(?=:)/, token: "keyword"},
+  	{regex: /\}/, token: "variable", next: "start", dedent: true}
+  ]
+});
+
+
+	var editor = CodeMirror.fromTextArea(input, {
+  height: "150px",
+  mode:"dsl",
+  lineNumbers: true,
+  scrollbarStyle:"native",
+  lint: ""
+});
+
+
     //generates and renders piece based on current parameters
     function generate(){
-
     	reset();
-    	var abcString = codeToABC($('textarea#input').val());
+    	var abcString = codeToABC(editor.getValue());
     	if (abcString.success){
     		ABCJS.renderAbc('notation', abcString.abc);
     		$("#seed").html(abcString.seed);
     	}
     	else {
     		var err = abcString.abc;
-    		$("#error").html(err.name + ": " + err.message);
+    		var lineNumber = err.location.end.line;
+    		$("#error").html("Line " + lineNumber + " - " + err.name + ": " + err.message);
     	}
     }
 

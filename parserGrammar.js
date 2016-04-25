@@ -1,14 +1,28 @@
 Program = 
+    (GlobalsAndStaves/StaveList/GlobalsOnly)
+
+GlobalsAndStaves = 
     global:ParameterList staves:StaveList {
         staves.unshift(global);
         return staves;
     }
+    
+//used for error checking - user entered global params without defining stave
+GlobalsOnly = 
+    ParameterList {
+        error("Missing Stave Definition");
+    }
 
+//must start with stave
 StaveList = 
-    staves:Stave+
+    staves:(Stave (Stave/ImproperlyPlacedParameter)*) {
+        var stavesList = [].concat.apply([], staves);
+        
+        return stavesList;
+    }
 
 Stave = 
-    w name:Alphanumeric _ "{" w params:ParameterList w "}" w {
+    w name:StaveName _ "{" w params:ParameterList w "}" w {
         params.name = name;
         return params;
     }
@@ -27,15 +41,36 @@ ParameterList =
         return paramList;
     }
 
-Parameter = 
-    w param:(PIntRangeOrInt/PKeySignature/PSeed/PSciNoteRange/PClef/PIntListOrRangeOrInt) w{
+Parameter "Parameter" = 
+    w param:(PIntRangeOrInt/PKeySignature/PSeed/PSciNoteRange/PClef/PIntListOrRangeOrInt/InvalidParameter/MissingValue/MissingColon) w{
         return param;
+    }
+    
+//error copy of Parameter
+ImproperlyPlacedParameter "Parameter" = 
+    w param:(PIntRangeOrInt/PKeySignature/PSeed/PSciNoteRange/PClef/PIntListOrRangeOrInt/InvalidParameter/MissingValue/MissingColon) w{
+        error("Global parameters must be placed before stave definitions");
+    }
+    
+InvalidParameter =
+    string: Alphanumeric _ ":" _ Alphanumeric {
+        error(string + " is not a valid parameter");
+    }
+    
+MissingValue = 
+    string: Alphanumeric _ ":" _ {
+        error("missing value");
+    }
+    
+MissingColon = 
+    string: Alphanumeric _ !"{"{
+        error("missing colon");
     }
 
 //all parameters that expect an integer range or an integer
 //always outputs an array of two elements - min and max
 PIntRangeOrInt  =
-    param:("measures") _ ":" _ value:(IntegerRange/Integer){
+    param:("measures") _ ":" _ value:(IntegerRange/Integer/InvalidParameterValue) (_ InvalidParameterValue / ""){
         
         //ensure that we return an array
         if (value.constructor != Array){
@@ -49,7 +84,7 @@ PIntRangeOrInt  =
 
 //always outputs a list (array) of ALL possible elements (not just min and max)
 PIntListOrRangeOrInt = 
-    param:("polyphony") _ ":" _ value:(IntegerList/IntegerRange/Integer){
+    param:("polyphony") _ ":" _ value:(IntegerList/IntegerRange/Integer/InvalidParameterValue) (_ InvalidParameterValue / ""){
     
         if (value.constructor === Array) {
             //integer range
@@ -77,31 +112,47 @@ PIntListOrRangeOrInt =
     }
     
 PClef = 
-    param:"clef" _ ":" _ value: Clef {
+    param:"clef" _ ":" _ value: (Clef/InvalidParameterValue) (_ InvalidParameterValue / "") {
         return {clef: value};
     }
 
 //all parameters that expect a time signature
 PKeySignature = 
-    param:("key") _ ":" _ value:Letter (" "/"") symbol:("#"/"b"/"") (" "/"") suffix:KeySuffix {
+    param:("key") _ ":" _ value:(Key/InvalidParameterValue) (_ InvalidParameterValue / "") {
         if (param == "key"){
-            return {key: value+symbol+suffix};
+            return {key: value};
         }
     }
-    
+   
 //seed
 PSeed = 
-    "seed" _ ":" _ value:Alphanumeric {
+    "seed" _ ":" _ value:(Alphanumeric/InvalidParameterValue) (_ InvalidParameterValue / "") {
         return {seed: value};
     }
 
 //sci note
 PSciNoteRange = 
-    "absRange" _ ":" _ value:SciNoteRange {
+    "absRange" _ ":" _ value:(SciNoteRange/InvalidParameterValue) (_ InvalidParameterValue / "") {
         return {absRange: value};
     }
 
-Alphanumeric = 
+Alphanumeric "String" = 
+    chars: [A-Za-z0-9]+{
+        return chars.join("");
+    }
+    
+InvalidParameterValue =
+    [a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};""'':\\|,.<>\/?]+{
+        error("Invalid parameter value");
+    }
+
+Key = 
+    value:Letter (" "/"") symbol:("#"/"b"/"") (" "/"") suffix:KeySuffix{
+        return value+symbol+suffix;
+    }
+    
+
+StaveName "Stave" = 
     chars: [A-Za-z0-9]+{
         return chars.join("");
     }
