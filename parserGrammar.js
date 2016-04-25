@@ -15,7 +15,7 @@ GlobalsOnly =
 
 //must start with stave
 StaveList = 
-    staves:(Stave (Stave/ImproperlyPlacedParameter)*) {
+    staves:((Stave/StaveWithoutEndBracket) (Stave/StaveWithoutEndBracket/ImproperlyPlacedParameter)*) {
         var stavesList = [].concat.apply([], staves);
         
         return stavesList;
@@ -27,6 +27,10 @@ Stave =
         return params;
     }
     
+StaveWithoutEndBracket = 
+    w StaveName _ "{" w params:ParameterList w {
+        error("missing closing curly brace");
+    }
 
 ParameterList = 
     params:Parameter* {

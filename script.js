@@ -142,8 +142,6 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         if (staves[0].key == null){
             staves[0].key = "C";
         }
-        console.log(staves[0].numMeasures);
-
         if (staves[0].numMeasures == null){
             staves[0].numMeasures = [10, 20];
         }
@@ -245,7 +243,6 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         var absMinPitch, absMaxPitch;
         absMinPitch = stave.absRange[0];
         absMaxPitch = stave.absRange[1];
-        console.log("min:" + absMinPitch, "max:" + absMaxPitch);
         
         //add notes 'poly' times
         while (poly > 0){
@@ -258,8 +255,6 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
             }
             notes[notes.length] = posNote;
         }
-
-        console.log(notes);
 
         //create string from midi notes in 'note' array
         for (var i = 0; i < notes.length; i++){
