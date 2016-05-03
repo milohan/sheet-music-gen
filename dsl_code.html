@@ -4,7 +4,7 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="code_style.css">
 </head>
 <body>    
     <a href="#" onclick="generate()" >GENERATE  </a>
@@ -43,22 +43,26 @@ absRange: G1-G3
 
 <script>
 
+//defines a "simple mode" for syntax highlighting
 CodeMirror.defineSimpleMode("dsl", {
   start: [
-    // RULES
+    //parameter name
     {regex: /^(measures|clef|key|absRange|polyphony|seed)(?=:)/, token: "keyword"},
+    
+    //string + '{' to start a stave
     {regex: /^[A-z0-9]+(?=\{)/, token: "def", next: "insideStave", indent: true},
-    //{regex: /^[A-Ga-g][0-9]/, token:"keyword"},
-    //{regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"}
   ],
-  // The multi-line comment state.
   insideStave: [
+
+    //stave parameter name
   	{regex: /^(measures|clef|key|absRange|polyphony)(?=:)/, token: "keyword"},
-  	{regex: /\}/, token: "variable", next: "start", dedent: true}
+  	
+    // '}' to end stave
+    {regex: /\}/, token: "variable", next: "start", dedent: true}
   ]
 });
 
-
+  //creates a CodeMirror textarea
 	var editor = CodeMirror.fromTextArea(input, {
   height: "150px",
   mode:"dsl",
@@ -71,18 +75,19 @@ CodeMirror.defineSimpleMode("dsl", {
     //generates and renders piece based on current parameters
     function generate(){
     	reset();
-    	var abcString = codeToABC(editor.getValue());
-    	if (abcString.success){
+    	var abcString = codeToABC(editor.getValue());  //ABC notation representation
+    	if (abcString.success){  //parse success
     		ABCJS.renderAbc('notation', abcString.abc);
     		$("#seed").html(abcString.seed);
     	}
-    	else {
+    	else { //handle parse error
     		var err = abcString.abc;
     		var lineNumber = err.location.end.line;
     		$("#error").html("Line " + lineNumber + " - " + err.name + ": " + err.message);
     	}
     }
 
+    //"reset" graphical components of web page
     function reset(){
         //clear out prev sheet music
         $("#notation").html("");

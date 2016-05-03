@@ -1,12 +1,11 @@
-
+//constants
 var OCTAVE = 12;
 var MEASURE_LENGTH_PADDING = 2;
-var timeNumerator = 4;
-var timeDenominator = 4;
-var lineLength = 25;
-var startKey = 'C';
-var noteLengths = ['q'];
+var TIME_NUMERATOR = 4;  //will eventually be controlled by a parameter
+var TIME_DENOMINATOR = 4;
+var MAX_LINE_LENGTH = 25;
 
+//note letter to semi-tone conversion
 var letterVals = {
     "C": 0,
     "D": 2,
@@ -17,19 +16,21 @@ var letterVals = {
     "B": 11
 };
 
+//ABC notation for all notes (using sharps)
 var notesSharps = ["C", "^C", 'D', '^D', 'E', "F", "^F", "G", "^G", "A", "^A", "B"];
+//ABC notation for all notes (using flats)
 var notesFlats = ["C", "_D", 'D', '_E', 'E', "F", "_G", "G", "_A", "A", "_B", "B"];
+//Scientific pitch notation for all notes (using sharps)
 var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"];
 
-
-    //var keys = ['A','B','C','D','E','F','G'];
 
     //returns a random number between 0 and bound.
     function randInt(bound) {
         return Math.floor(Math.random() * (bound));
     }
 
-    //@pre: note is a string of the format "LETTER (A-G) + (#* OR b*) + NUMBER (0-8)," eg C#4 or D2.
+    //pre: note is a string of the format "LETTER (A-G) + (#* OR b*) + NUMBER (0-8)," eg C#4 or D2.
+    //convert from scientific pitch notation to MIDI pitch value
     function sciToMidi(note){
         var letter = note.charAt(0).toUpperCase();
         var octave = parseInt(note.charAt(note.length-1));
@@ -56,7 +57,6 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
 
    //converts midi value of note pitch (int from 0 to 127) to corresponding scientific pitch notation
    function midiToSci(midi){
-
     return ("" + notesSci[midi % 12] + Math.floor((midi-12)/12));
 }
 
@@ -112,9 +112,9 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
             };        
         }
 
-        //seeding
+        //reseed
         Math.seedrandom();
-        var seed = Math.random().toString(36).substring(7, 12);
+        var seed = Math.random().toString(36).substring(7, 12); //get random string for seed
         if (staves[0].seed != null){
             seed = staves[0].seed;
         }
@@ -176,12 +176,17 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
         }
     }
 
+    //returns a string of ABC notation based off the parameters in the 'staves' array.
     function genABC(staves){
-        var genString ="M: " + timeNumerator + "/" + timeDenominator + "\n";
+
+        //apply score parameters
+        var genString ="M: " + TIME_NUMERATOR + "/" + TIME_DENOMINATOR + "\n";
         genString = genString + "L: 1/4 \n"
         genString = genString + "K: " + staves[0].key + " " + staves[0].clef + "\n"
 
         var measures = randInt(staves[0].numMeasures[1] - staves[0].numMeasures[0] + 1) + staves[0].numMeasures[0];
+        
+        //generate each stave one-by-one
         for (var i = 1; i < staves.length; i++) {
             var clef = staves[i].clef;
             genString = genString + "[V: " + i + " clef: " + clef + "] ";
@@ -189,11 +194,13 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
             console.log(genString);
         }
 
+        //get rid of any double newlines
         genString.replace(/[\n\n]{2,}/g, "\n");
 
         return genString;
     }
 
+    //generates 'measures' measures of music based on the parameters in 'stave'
     function genStave(stave, measures){
         var genString = "";
         var curLineLength = 0; //current number of notes in line (to keep track of when to start new line)
@@ -204,8 +211,8 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
             genString = genString + measure.measureString;
             curLineLength += measure.numNotes;
 
-            //start new line if we're past lineLength, but only if we have some measures left.
-            if (curLineLength >= lineLength && m > 0){
+            //start new line if we're past MAX_LINE_LENGTH, but only if we have some measures left.
+            if (curLineLength >= MAX_LINE_LENGTH && m > 0){
                 curLineLength = 0;
                 genString = genString + "\n";
             }
@@ -232,7 +239,6 @@ var notesSci = ["C", "C#", 'D', 'D#', 'E', "F", "F#", "G", "G#", "A", "A#", "B"]
     	}
     }
 
-    //TODO: potential infinite loop if user enters SMALL abs pitch range and LARGE poly.
     //generates random note with 'poly' pitches, all within abs pitch range.
     function genRandomNote(stave, poly){
         var noteString = "[";

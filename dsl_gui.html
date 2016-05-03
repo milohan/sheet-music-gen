@@ -11,72 +11,8 @@
 
     <link href="nouislider.min.css" rel="stylesheet">
 
-    <style>
-    body {
-        background-color: lavender;
-    }
-    .form-control-inline {
-        min-width: 0;
-        max-width: 60px;
-        width: auto;
-        display: inline;
-        height: auto;
+    <link rel="stylesheet" type="text/css" href="gui_style.css">
 
-        padding-bottom: 2px;
-        padding-top: 2px;
-        padding-right: 0px;
-        padding-left:5px;
-    }
-
-    .btn-clef{
-        padding: 0 9px 0 5px;
-
-    }
-
-    .btn-acc{
-        padding-left: 10px;
-        padding-right: 10px;
-        padding-top: 3px;
-        padding-bottom: 3px;
-        font-size: 20px;
-    }
-
-    .slider{
-        display: inline-block;
-        width: 300px;
-    }
-
-    .noUi-connect{
-        background:gray;
-    }
-
-    .dropdown-menu {
-        width: auto; 
-        min-width:0px;
-    }
-
-    .param-name{
-        min-width: 80px;
-        display:inline-block;
-    }
-
-    .param{
-        padding-top:5px;
-        padding-bottom: 5px;
-        display: inline-block;
-    }
-
-    #code-output{
-        max-width:300px;
-        height: auto;
-    }
-
-    .disabled-option{
-        background-color:#d9d9d9;
-        color:#aaa;
-    }
-
-    </style>
 </head>
 <body>
 
@@ -244,6 +180,7 @@
             </div>
         </div>
     </div>
+
     <script src="nouislider.min.js"></script>
     <script src="abcjs_basic_2.3-min.js" type="text/javascript"></script>
     <script src="parser.js" type="text/javascript"></script>
@@ -317,13 +254,14 @@ noUiSlider.create(slider, {
     }
 });
 
+//resize textarea so no scrolling is required
 function textAreaAdjust(area) {
     area.style.height = "1px";
     area.style.height = (25+area.scrollHeight)+"px";
 }
 
 
-//creates dsl code based on form values
+//form value -> DSL code -> ABC notation -> rendered sheet music
 function generate(){
     var code = "";
     var measures = $("#measures").val();
@@ -340,13 +278,10 @@ function generate(){
 
     code = "measures: " + measures + "\n";
     code = code + "key: " + key + "\n";
-
     code=  code + "Stave1{\n";
-
     code = code + "clef: " + clef + "\n";
     code = code + "absRange: " + range + "\n";
     code = code + "polyphony: " + polyphony + "\n";
-
     code = code + "}";
 
     $("#code-output").val(code);
@@ -354,10 +289,10 @@ function generate(){
 
     //turn code into sheet music
     var abcString = codeToABC(code);
-    if (abcString.success){
+    if (abcString.success){  //parse success
         ABCJS.renderAbc('notation', abcString.abc);
     }
-    else {
+    else {  //parse error
         var err = abcString.abc;
         alert(err.name + ": " + err.message);
     }
