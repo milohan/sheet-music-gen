@@ -23,8 +23,8 @@ To run, open "dsl_code.html" with your browser of choice (make sure your folder 
 	- Global parameters are parameters that will be used by default whenever they is not specified by a stave.  For example, if you want all your staves to be in bass clef, you can type "clef: bass" once as a global parameter instead of typing it in every stave.
 
 ### Example input and corresponding output:
-![input](https://raw.githubusercontent.com/milohan/sheet-music-gen/master/example_images/example_input_annotated.png)
-![output](https://raw.githubusercontent.com/milohan/sheet-music-gen/master/example_images/example_output.png)
+![input](https://raw.githubusercontent.com/milohan/sheet-music-gen/master/example_images/code_input.png)
+![output](https://raw.githubusercontent.com/milohan/sheet-music-gen/master/example_images/code_output.png)
 
 ### Parameters that are currently supported:
 
